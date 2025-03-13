@@ -127,15 +127,36 @@ app.MapGet("/Hotels/{hotelId}/Bookings/{min_date}", async (int hotelId, DateTime
 // This endpoint is used to send a message to the Azure OpenAI endpoint.
 app.MapPost("/Chat", async Task<string> (HttpRequest request) =>
 {
-    var message = await Task.FromResult(request.Form["message"]);
-    var kernel = app.Services.GetRequiredService<Kernel>();
-    var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
-    var executionSettings = new OpenAIPromptExecutionSettings
+    Console.WriteLine("Chat endpoint called");
+    try
     {
-        ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
-    };
-    var response = await chatCompletionService.GetChatMessageContentAsync(message.ToString(), executionSettings, kernel);
-    return response?.Content!;
+        var message = await Task.FromResult(request.Form["message"]);
+        Console.WriteLine("Message received: " + message);
+        
+        var kernel = app.Services.GetRequiredService<Kernel>();
+        Console.WriteLine("Kernel service retrieved.");
+        
+        var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+        Console.WriteLine("ChatCompletionService retrieved.");
+        
+        var executionSettings = new OpenAIPromptExecutionSettings
+        {
+            ToolCallBehavior = ToolCallBehavior.AutoInvokeKernelFunctions
+        };
+        Console.WriteLine("Execution settings configured.");
+        
+        var response = await chatCompletionService.GetChatMessageContentAsync(message.ToString(), executionSettings, kernel);
+        Console.WriteLine("Response received from chat completion service.");
+        
+        return response?.Content!;
+        }
+        catch (Exception ex)
+        {
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while processing the chat request.");
+        Console.WriteLine($"An error occurred while processing the chat request: {ex.Message}");
+        return "An error occurred while processing your request.";
+    }
 })
     .WithName("Chat")
     .WithOpenApi();

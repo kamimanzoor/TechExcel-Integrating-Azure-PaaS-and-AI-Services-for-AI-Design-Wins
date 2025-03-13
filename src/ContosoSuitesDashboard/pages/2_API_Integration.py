@@ -66,6 +66,10 @@ def main():
     if st.button("Submit"):
         with st.spinner("Calling Chat endpoint..."):
             if question:
+                # Log the response details to stdout
+                print("Response Status Code:", response.status_code)
+                print("Response Headers:", response.headers)
+                print("Response JSON:", response.json())
                 response = invoke_chat_endpoint(question)
                 st.write(response.text)
                 st.success("Chat endpoint called successfully.")
